@@ -1,29 +1,40 @@
-
+use num::{
+    traits::{CheckedAdd, CheckedSub},
+    Zero,
+};
 use std::collections::BTreeMap;
-use num::traits::{CheckedAdd,CheckedSub};
-type AccountId=String;
-type Balance=u128;
 
+type AccountId = String;
+type Balance = u128;
 
 #[derive(Debug)]
-pub struct Pallet {
+pub struct Pallet<AccountId, Balance> {
     balances: BTreeMap<AccountId, Balance>,
 }
-impl Pallet {
+impl<AccountId, Balance> Pallet<AccountId, Balance>
+where
+    AccountId: Ord + Clone,
+    Balance: Zero + CheckedSub + CheckedAdd + Copy + PartialOrd,
+{
     pub fn new() -> Self {
         Self {
             balances: BTreeMap::new(),
         }
     }
 
-    pub fn set_balance(&mut self, to: &AccountId, amount: u128) -> Option<Balance> {
+    pub fn set_balance(&mut self, to: &AccountId, amount: Balance) -> Option<Balance> {
         self.balances.insert(to.clone(), amount)
     }
 
     pub fn balance(&self, from: &AccountId) -> Balance {
-        *self.balances.get(from).unwrap_or(&0)
+        *self.balances.get(from).unwrap_or(&Balance::zero())
     }
-    pub fn transfer(&mut self, from: &AccountId, to: &AccountId, amount: Balance) -> Result<(), String> {
+    pub fn transfer(
+        &mut self,
+        from: &AccountId,
+        to: &AccountId,
+        amount: Balance,
+    ) -> Result<(), String> {
         let balance_from = self.balance(from);
         let balance_to = self.balance(to);
         if amount > balance_from {
