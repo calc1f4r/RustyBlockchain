@@ -23,16 +23,25 @@ impl<T: Config> Pallet<T> {
     }
 
     // Method to transfer an amount from one account to another
-    pub fn transfer(&mut self, from: &T::AccountId, to: &T::AccountId, amount: T::Balance) -> Result<(), String> {
+    pub fn transfer(
+        &mut self,
+        from: &T::AccountId,
+        to: &T::AccountId,
+        amount: T::Balance,
+    ) -> Result<(), String> {
         // Get the balance of the 'from' account, defaulting to zero if not found
         let balance_from = *self.balances.get(from).unwrap_or(&T::Balance::zero());
         // Get the balance of the 'to' account, defaulting to zero if not found
         let balance_to = *self.balances.get(to).unwrap_or(&T::Balance::zero());
 
         // Subtract the amount from the 'from' account, returning an error if it would underflow
-        let new_balance_from = balance_from.checked_sub(&amount).ok_or("Insufficient Balance".to_string())?;
+        let new_balance_from = balance_from
+            .checked_sub(&amount)
+            .ok_or("Insufficient Balance".to_string())?;
         // Add the amount to the 'to' account, returning an error if it would overflow
-        let new_balance_to = balance_to.checked_add(&amount).ok_or("Overflow".to_string())?;
+        let new_balance_to = balance_to
+            .checked_add(&amount)
+            .ok_or("Overflow".to_string())?;
 
         // Update the balances map with the new balances
         self.balances.insert(from.clone(), new_balance_from);
@@ -87,12 +96,14 @@ mod tests {
     #[test]
     fn test_transfer_pallet() {
         // Create a new Pallet instance
-        let mut pallet  = Pallet::<TestConfig>::new();
+        let mut pallet = Pallet::<TestConfig>::new();
         // Insert initial balances for Alice and Bob
         pallet.balances.insert("Alice".to_string(), 1000);
         pallet.balances.insert("Bob".to_string(), 100);
         // Perform a transfer from Alice to Bob and assert that it succeeds
-        assert!(pallet.transfer(&"Alice".to_string(), &"Bob".to_string(), 100).is_ok());
+        assert!(pallet
+            .transfer(&"Alice".to_string(), &"Bob".to_string(), 100)
+            .is_ok());
         // Assert that the balances have been updated correctly
         assert_eq!(pallet.get_balance(&"Alice".to_string()), 900);
         assert_eq!(pallet.get_balance(&"Bob".to_string()), 200);

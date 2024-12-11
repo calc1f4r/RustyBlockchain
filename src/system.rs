@@ -1,19 +1,17 @@
-use std::collections::BTreeMap;
 use num::{CheckedAdd, One, Zero};
-pub trait Config{
-    type BlockNumber:CheckedAdd + Zero + One + Copy;
-    type AccountId:Ord + Clone;
-    type Nonce:Zero + CheckedAdd + One + Copy;
+use std::collections::BTreeMap;
+pub trait Config {
+    type BlockNumber: CheckedAdd + Zero + One + Copy;
+    type AccountId: Ord + Clone;
+    type Nonce: Zero + CheckedAdd + One + Copy;
 }
 #[derive(Debug)]
-pub struct Pallet<T:Config> {
+pub struct Pallet<T: Config> {
     block_number: T::BlockNumber,
     nonce: BTreeMap<T::AccountId, T::Nonce>,
 }
 
-impl<T:Config> Pallet<T>
-where
-{
+impl<T: Config> Pallet<T> {
     pub fn new() -> Self {
         Self {
             block_number: T::BlockNumber::zero(),
@@ -22,13 +20,18 @@ where
     }
 
     pub fn increment_block_number(&mut self) -> Result<(), String> {
-        self.block_number = self.block_number.checked_add(&T::BlockNumber::one()).ok_or("Overflow")?;
+        self.block_number = self
+            .block_number
+            .checked_add(&T::BlockNumber::one())
+            .ok_or("Overflow")?;
         Ok(())
     }
 
     pub fn increment_nonce(&mut self, from: T::AccountId) -> Result<(), String> {
         let current_nonce_user = self.nonce.get(&from).unwrap_or(&T::Nonce::zero()).clone();
-        let new_nonce_user = current_nonce_user.checked_add(&T::Nonce::one()).ok_or("Overflow")?;
+        let new_nonce_user = current_nonce_user
+            .checked_add(&T::Nonce::one())
+            .ok_or("Overflow")?;
         self.nonce.insert(from.clone(), new_nonce_user);
         Ok(())
     }
