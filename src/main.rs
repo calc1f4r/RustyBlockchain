@@ -1,47 +1,51 @@
-// making them useful
+
+
 mod balances;
-
 mod system;
-mod types {
-    pub type AccountId = String;
-    pub type Balance = u128;
-    pub type Nonce = u32;
-    pub type BlockNumber = u32;
+
+
+mod types{
+   pub  type AccountId=String;
+    pub type BlockNumber=u32;
+    pub type Nonce=u32;
+    pub type Balance=u128;
 }
-#[derive(Debug)]
-pub struct Runtime {
-    system: system::Pallet<types::AccountId,types::Nonce,types::BlockNumber>,
-    balances: balances::Pallet<types::AccountId, types::Balance>,
+pub struct Runtime{ 
+    system:system::Pallet<types::Nonce,types::BlockNumber,types::AccountId>,
+    balances:balances::Pallet<types::AccountId,types::Balance>,
 }
 
-impl Runtime {
-    fn new() -> Self {
-        Self {
-            system: system::Pallet::new(),
-            balances: balances::Pallet::new(),
+impl Runtime{
+    fn new()->Self{
+        Self{
+            system:system::Pallet::new(),
+            balances:balances::Pallet::new()
         }
     }
 }
-
 fn main() {
-    let mut runtime = Runtime::new();
+    let mut runtime=Runtime::new();
+    let alice="Alice".to_string();
+    let bob="bob".to_string();
+    let charlie="charlie".to_string();
+    
 
-    let alice = String::from("Alice");
-    let bob: String = String::from("Bob");
-    let charlie = String::from("Charlie");
-    runtime.balances.set_balance(&alice, 100);
-    runtime.system.increment_nonce(&alice);
-
+    runtime.balances.set_balances(&alice, 1000);
+    
     runtime.system.increment_block_number();
 
-    let _ = runtime.balances.transfer(&alice, &bob, 10).map_err(|err| {
-        eprintln!("Error: {:?}", err);
-    });
-    let _ = runtime
-        .balances
-        .transfer(&alice, &charlie, 1)
-        .map_err(|err| {
-            eprintln!("Error: {:?}", err);
-        });
-    println!("{:#?}", runtime);
+    assert_eq!(runtime.system.get_block_number(), 1);
+    
+    let from = alice.clone();
+    let to = bob.clone();
+    let amount = 500;
+
+    match runtime.balances.transfer(&from, &to, amount) {
+        Ok(_) => println!("Transfer successful"),
+        Err(e) => println!("Transfer failed: {}", e),
+    }
+
+    assert_eq!(runtime.balances.get_balance(&alice), 500);
+    assert_eq!(runtime.balances.get_balance(&bob), 500);
+
 }
