@@ -1,17 +1,11 @@
 use std::collections::BTreeMap;
 use num::{CheckedAdd, One, Zero};
-
-
-
-
 pub trait Config{
     type BlockNumber:CheckedAdd + Zero + One + Copy;
     type AccountId:Ord + Clone;
     type Nonce:Zero + CheckedAdd + One + Copy;
 }
-
-
-
+#[derive(Debug)]
 pub struct Pallet<T:Config> {
     block_number: T::BlockNumber,
     nonce: BTreeMap<T::AccountId, T::Nonce>,
