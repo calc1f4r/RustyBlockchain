@@ -24,7 +24,7 @@ pub struct Extrinsic<Caller, Call> {
 
 /// The Result type for our runtime. When everything completes successfully, we return `Ok(())`,
 /// otherwise return a static error message.
-pub type DispatchResult = Result<(), &'static str>;
+pub type DispatchResult = Result<(), String>;
 
 /// A trait which allows us to dispatch an incoming extrinsic to the appropriate state transition
 /// function call.

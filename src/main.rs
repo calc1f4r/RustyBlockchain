@@ -1,9 +1,8 @@
 mod balances;
+mod proof_of_existance;
 mod support;
 mod system;
-
 use crate::support::Dispatch;
-
 pub mod types {
     use crate::support;
     pub type AccountId = String;
@@ -16,10 +15,7 @@ pub mod types {
     pub type Block = support::Block<Header, Extrinsic>;
 }
 pub enum RuntimeCall {
-    BalancesTransfer {
-        to: types::AccountId,
-        amount: types::Balance,
-    },
+    Balances(balances::Call<Runtime>),
 }
 impl system::Config for Runtime {
     type AccountId = types::AccountId;
@@ -47,7 +43,7 @@ impl Runtime {
         self.system.increment_block_number();
 
         if self.system.get_block_number() != block.header.block_number {
-            return Err("Block number mismatch");
+            return Err("Block number mismatch".to_string());
         }
         for (i, support::Extrinsic { caller, call }) in block.extrinsics.into_iter().enumerate() {
             self.system.increment_nonce(caller.clone());
@@ -71,9 +67,7 @@ impl crate::support::Dispatch for Runtime {
         runtime_call: Self::Call,
     ) -> support::DispatchResult {
         match runtime_call {
-            RuntimeCall::BalancesTransfer { to, amount } => {
-                self.balances.transfer(&caller, &to, amount);
-            }
+            RuntimeCall::Balances(call) => self.balances.dispatch(caller, call)?,
         }
         Ok(())
     }
@@ -91,17 +85,17 @@ fn main() {
         extrinsics: vec![
             support::Extrinsic {
                 caller: alice.clone(),
-                call: RuntimeCall::BalancesTransfer {
+                call: RuntimeCall::Balances(balances::Call::Transfer {
                     to: bob.clone(),
                     amount: 1000,
-                },
+                }),
             },
             support::Extrinsic {
                 caller: alice.clone(),
-                call: RuntimeCall::BalancesTransfer {
+                call: RuntimeCall::Balances(balances::Call::Transfer {
                     to: charlie.clone(),
                     amount: 1000,
-                },
+                }),
             },
         ],
     };

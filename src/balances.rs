@@ -61,9 +61,42 @@ impl<T: Config> Pallet<T> {
     }
 }
 
+// Define the Call enum for dispatchable functions
+pub enum Call<T: Config> {
+    Transfer {
+        to: T::AccountId,
+        amount: T::Balance,
+    },
+}
+
+// Implement the Dispatch trait for the Pallet
+impl<T: Config> crate::support::Dispatch for Pallet<T> {
+    type Caller = T::AccountId;
+    type Call = Call<T>;
+
+    fn dispatch(
+        &mut self,
+        caller: Self::Caller,
+        call: Self::Call,
+    ) -> crate::support::DispatchResult {
+        match call {
+            Call::Transfer { to, amount } => {
+                self.transfer(&caller, &to, amount)?;
+                Ok(())
+            }
+        }
+    }
+}
+
+// Define the RuntimeCall enum for the runtime
+pub enum RuntimeCall<T: Config> {
+    Balances(Call<T>),
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::support;
     use crate::system;
 
     // Define a test configuration struct
